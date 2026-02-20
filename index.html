@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NurseFlow</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2563eb">
+
+  <link rel="stylesheet" href="styles.css">
+<meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+<script>
+  // --- Accès privé NurseFlow ---
+  // Change ce code (évite un truc trop simple)
+  const ACCESS_CODE = "NF-2026";
+
+  // Mémorise l'accès pendant 7 jours
+  const KEY = "nf_access_ok";
+  const UNTIL_KEY = "nf_access_until";
+
+  const now = Date.now();
+  const until = Number(localStorage.getItem(UNTIL_KEY) || "0");
+  const ok = localStorage.getItem(KEY) === "1" && now < until;
+
+  function deny() {
+    document.body.innerHTML = `
+      <div style="max-width:520px;margin:12vh auto;padding:18px;font-family:system-ui;text-align:center">
+        <h2>Accès privé</h2>
+        <p style="color:#64748b;line-height:1.4">
+          Cette version de NurseFlow est en test privé.
+        </p>
+        <p style="margin-top:12px;color:#64748b">Code incorrect.</p>
+      </div>
+    `;
+  }
+
+  if (!ok) {
+    const input = prompt("NurseFlow (test privé)\nEntrez le code d’accès :");
+    if (input === ACCESS_CODE) {
+      localStorage.setItem(KEY, "1");
+      // 7 jours
+      localStorage.setItem(UNTIL_KEY, String(now + 7*24*60*60*1000));
+    } else {
+      deny();
+    }
+  }
+</script>
+<header class="topbar">
+  <div class="brand" id="homeHeader" title="Retour à l'accueil">
+    <div class="logo" id="homeLogo">NF</div>
+    <div>
+      <div class="title" id="homeTitle">NurseFlow</div>
+      <div class="subtitle">Bonnes pratiques infirmières</div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ACCUEIL -->
+  <section id="viewHome" class="card">
+    <div class="heroHome">
+      <div class="heroLeft">
+        <div class="heroKicker">NurseFlow</div>
+        <div class="heroTitle">Guide des bonnes pratiques cliniques infirmières</div>
+        <div class="heroText">
+          Des fiches infirmières claires, actionnables et structurées pour le terrain.
+        </div>
+        <div class="heroChips">
+          <span class="chip">Adulte</span>
+          <span class="chip">Asepsie</span>
+          <span class="chip">CSS 9553</span>
+        </div>
+      </div>
+      <div class="heroBadge">NF</div>
+    </div>
+
+    <div class="discoverGrid">
+      <button id="goSearchBtn" class="discoverCard" type="button">
+        <div class="discoverIcon">🔎</div>
+        <div class="discoverName">Recherche</div>
+        <div class="discoverMeta">Trouver une fiche rapidement</div>
+      </button>
+      <button id="goCatsBtn" class="discoverCard" type="button">
+        <div class="discoverIcon">🧭</div>
+        <div class="discoverName">Catégories</div>
+        <div class="discoverMeta">Explorer par thème</div>
+      </button>
+      <button id="goFavsBtn" class="discoverCard" type="button">
+        <div class="discoverIcon">★</div>
+        <div class="discoverName">Favoris</div>
+        <div class="discoverMeta">Retrouver tes fiches enregistrées</div>
+      </button>
+    </div>
+<div class="homeLegal">
+  Cette application constitue un outil d’information professionnelle.<br>
+  Elle ne remplace ni les protocoles institutionnels, ni les prescriptions médicales,
+  ni le jugement clinique du professionnel de santé.
+</div>
+
+    <div class="homeSection">
+      <div class="homeSectionTitle">Catégories</div>
+      <div id="categories" class="catGrid"></div>
+    </div>
+  </section>
+
+  <!-- RECHERCHE -->
+  <section id="viewSearch" class="card hidden">
+    <input id="search" class="input" type="search" placeholder="Rechercher une fiche… (ex : PICC, pansement, CSS 9553)">
+    <div id="status" class="status"></div>
+    <div id="list" class="list"></div>
+  </section>
+
+  <!-- DETAIL -->
+  <section id="detail" class="card hidden">
+    <div class="detailTop">
+      <button id="backBtn" class="btn ghost">← Retour</button>
+      <button id="detailFavBtn" class="btn" type="button">★ Ajouter</button>
+    </div>
+    <div id="detailContent"></div>
+  </section>
+
+</main>
+
+<nav class="bottomNav">
+  <button class="navBtn active" data-view="home">🏠<span>Accueil</span></button>
+  <button class="navBtn" data-view="search">🔎<span>Recherche</span></button>
+</nav>
+
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
+
+</body>
+</html>
