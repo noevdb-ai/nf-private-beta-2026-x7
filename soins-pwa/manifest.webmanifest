@@ -1,8 +1,0 @@
-{
-  "name": "NurseFlow",
-  "short_name": "NurseFlow",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f1f6ff",
-  "theme_color": "#2563eb"
-}
