@@ -456,3 +456,45 @@ body{
   line-height: 1.4;
 }
 
+/* ==========================
+   Zoom image plein écran
+========================== */
+
+.zoomOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+  z-index: 9999;
+}
+
+.zoomOverlay.show{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.zoomInner{
+  position: relative;
+  max-width: 95%;
+  max-height: 95%;
+}
+
+.zoomInner img{
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 12px;
+}
+
+.zoomClose{
+  position: absolute;
+  top: -40px;
+  right: 0;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+}
