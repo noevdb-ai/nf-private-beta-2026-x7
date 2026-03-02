@@ -22,14 +22,14 @@ const DATA = [
       "Altération de la fixation du cathéter"
     ],
     alertCTA:
-      "En présence d’un point d’alerte, la conduite à tenir doit être adaptée : sécuriser le dispositif, tracer les observations et alerter conformément aux procédures et recommandations en vigueur.",
+      "En présence d’un point d’alerte, la conduite à tenir doit être adaptée : sécuriser le dispositif, noter les observations et alerter le médecin conformément aux procédures et recommandations en vigueur.",
     alertKey: "Ne jamais réinsérer un PICC line ayant migré, même partiellement.",
 
     // 🪜 Technique figée (2 lignes pédagogiques)
     steps: [
-      { t: "Hygiène des mains", d: "Friction hydro-alcoolique 20 à 30 secondes, jusqu’au séchage complet.\nLavage à l’eau et au savon si nécessaire (mains visiblement souillées)." },
-      { t: "Préparation du soin", d: "Préparer l’ensemble du matériel à l’avance sur un plan propre.\nVérifier compatibilité des produits avec le PICC et intégrité des emballages." },
-      { t: "Retrait de l’ancien pansement", d: "Mettre des gants non stériles.\nRetirer délicatement en stabilisant le cathéter afin d’éviter traction ou migration." },
+      { t: "Hygiène des mains", d: "Lavage à l’eau et au savon si nécessaire (mains visiblement souillées).\nFriction hydro-alcoolique 20 à 30 secondes, jusqu’au séchage complet." },
+      { t: "Préparation du soin", d: "Préparer l’ensemble du matériel à l’avance sur un plan propre.\nVérifier compatibilité et l'intégrité des produits avec le PICC et intégrité des emballages." },
+      { t: "Retrait de l’ancien pansement", d: "Mettre des gants non stériles.\nRetirer délicatement en stabilisant le cathéter afin d’éviter toute traction ou migration." },
       { t: "Inspection du site d’insertion", d: "Inspecter le point d’insertion et la peau périphérique : rougeur, douleur, chaleur, œdème, écoulement, lésion.\nEn cas de signe anormal : sécuriser, tracer, alerter selon procédures et recommandations en vigueur." },
       { t: "Surveillance de la position du PICC", d: "Vérifier l’absence de traction et toute modification de la longueur externe visible (si repère).\nToute suspicion de migration doit être signalée et tracée." },
       { t: "Nettoyage du site (si nécessaire)", d: "Nettoyer uniquement en cas de souillure visible ou présence de sang.\nUtiliser des compresses stériles, sans irriter la peau." },
@@ -58,7 +58,7 @@ const DATA = [
           "À privilégier si exsudat ou peau altérée"
         ]
       },
-      rule: "Toute perte d’intégrité du pansement impose un changement immédiat."
+      rule: "Toute perte d’intégrité du pansement impose une réfection immédiate."
     },
 
     // 👀 Surveillance figée (pratique)
@@ -74,7 +74,7 @@ const DATA = [
       purpose: "Cette fiche a pour objectif de soutenir la pratique professionnelle infirmière en proposant un rappel structuré des bonnes pratiques relatives à la réfection du pansement de PICC line.",
       frame: "Les informations présentées sont fondées sur les recommandations en vigueur et visent à accompagner le raisonnement clinique infirmier. Elles ne se substituent pas aux protocoles institutionnels, aux prescriptions médicales ni au jugement professionnel.",
       duty: "Chaque situation clinique étant spécifique, le professionnel de santé demeure responsable de l’évaluation de la situation, de l’adaptation des pratiques et des décisions prises dans le respect des procédures locales et de la réglementation en vigueur.",
-      doubt: "En seen cas de doute, de situation inhabituelle ou de signe de complication, il est recommandé de ne pas poursuivre le soin à l’identique, de sécuriser le dispositif et de solliciter un avis médical ou référent, conformément aux procédures en place.",
+      doubt: "En cas de doute, de situation inhabituelle ou de signe de complication, il est recommandé de ne pas poursuivre le soin à l’identique, de sécuriser le dispositif et de solliciter un avis médical ou référent, conformément aux procédures en place.",
       refs: "Référence : CSS 9553 – Prévention des infections liées aux cathéters intravasculaires."
     },
 
@@ -261,6 +261,52 @@ els.searchInput.addEventListener("input", () => {
 });
 
 // ===========================
+// Image Zoom (plein écran)
+// ===========================
+const zoomOverlay = document.createElement("div");
+zoomOverlay.className = "zoomOverlay";
+zoomOverlay.innerHTML = `
+  <div class="zoomInner">
+    <span class="zoomClose" role="button" aria-label="Fermer">✕</span>
+    <img src="" alt="Zoom image">
+  </div>
+`;
+document.body.appendChild(zoomOverlay);
+
+const zoomImg = zoomOverlay.querySelector("img");
+const zoomClose = zoomOverlay.querySelector(".zoomClose");
+
+function openZoom(src) {
+  zoomImg.src = src;
+  zoomOverlay.classList.add("show");
+}
+
+function closeZoom() {
+  zoomOverlay.classList.remove("show");
+  zoomImg.src = "";
+}
+
+function enableImageZoom() {
+  const imgs = document.querySelectorAll(".zoomable");
+  imgs.forEach(img => {
+    // évite d'ajouter plusieurs fois le listener si on rouvre le détail
+    if (img.dataset.zoomBound === "1") return;
+    img.dataset.zoomBound = "1";
+
+    img.addEventListener("click", () => {
+      openZoom(img.dataset.full || img.src);
+    });
+  });
+}
+
+zoomOverlay.addEventListener("click", (e) => {
+  if (e.target === zoomOverlay || e.target === zoomClose) closeZoom();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeZoom();
+});
+
+// ===========================
 // Détail
 // ===========================
 function openDetail(id){
@@ -283,7 +329,13 @@ function openDetail(id){
 
   const imageHtml = `
     <div class="heroImg" style="margin-top:12px">
-      <img src="${esc(item.image)}" alt="Illustration PICC">
+      <img
+        src="${esc(item.image)}"
+        alt="Illustration PICC"
+        class="zoomable"
+        data-full="${esc(item.image)}"
+        style="cursor:zoom-in"
+      >
     </div>
     <div class="caption">${esc(item.imageCaption)}</div>
   `;
@@ -426,6 +478,9 @@ function openDetail(id){
     ${survHtml}
     ${legalHtml}
   `;
+
+  // ✅ Active le zoom sur l'image nouvellement injectée
+  enableImageZoom();
 
   // Accordéon : 1 ouvert à la fois
   const cards = Array.from(els.detailContent.querySelectorAll(".stepCard"));
