@@ -9,12 +9,12 @@ const DATA = [
     subtitle: "Bonnes pratiques infirmières – CSS 9553",
     summary: "Technique sécurisée et conforme pour la réfection du pansement de PICC line.",
     tags: ["Adulte", "PICC line", "Asepsie", "CSS 9553"],
-    image:"actifs/picc_steps.png"",
+    image:"picc_steps.png"",
     imageCaption: "Illustration pédagogique des étapes de la réfection du pansement de PICC line.",
 
     video: {
       title: "Tutoriel vidéo – Réfection du pansement de PICC line",
-      file: "actifs/picc_tuto.mp4"
+      file: "picc_tuto.mp4"
     },
 
     alerts: [
