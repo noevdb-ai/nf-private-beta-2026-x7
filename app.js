@@ -1,10 +1,10 @@
 // ===========================
-// DATA (FIGÉE)
+// DATA (PICC LINE UNIQUEMENT)
 // ===========================
 const DATA = [
   {
     id: "refection-picc-css9553",
-    category: "Pansement PICC Line",
+    category: "PICC Line",
     title: "Réfection du pansement de PICC line",
     subtitle: "Bonnes pratiques infirmières – CSS 9553",
     summary: "Technique sécurisée et conforme pour la réfection du pansement de PICC line.",
@@ -12,7 +12,11 @@ const DATA = [
     image: "assets/picc_steps.png",
     imageCaption: "Illustration pédagogique des étapes de la réfection du pansement de PICC line.",
 
-    // 🚨 Alerte figée
+    video: {
+      title: "Tutoriel vidéo – Réfection du pansement de PICC line",
+      file: "assets/picc_tuto.mp4"
+    },
+
     alerts: [
       "Pansement non intègre (souillé, humide, décollé, déplacé)",
       "Signes locaux : rougeur, douleur, chaleur, œdème, écoulement, lésion cutanée",
@@ -25,10 +29,9 @@ const DATA = [
       "En présence d’un point d’alerte, la conduite à tenir doit être adaptée : sécuriser le dispositif, noter les observations et alerter le médecin conformément aux procédures et recommandations en vigueur.",
     alertKey: "Ne jamais réinsérer un PICC line ayant migré, même partiellement.",
 
-    // 🪜 Technique figée (2 lignes pédagogiques)
     steps: [
       { t: "Hygiène des mains", d: "Lavage à l’eau et au savon si nécessaire (mains visiblement souillées).\nFriction hydro-alcoolique 20 à 30 secondes, jusqu’au séchage complet." },
-      { t: "Préparation du soin", d: "Préparer l’ensemble du matériel à l’avance sur un plan propre.\nVérifier compatibilité et l'intégrité des produits avec le PICC et intégrité des emballages." },
+      { t: "Préparation du soin", d: "Préparer l’ensemble du matériel à l’avance sur un plan propre.\nVérifier la compatibilité des produits avec le PICC et l’intégrité des emballages." },
       { t: "Retrait de l’ancien pansement", d: "Mettre des gants non stériles.\nRetirer délicatement en stabilisant le cathéter afin d’éviter toute traction ou migration." },
       { t: "Inspection du site d’insertion", d: "Inspecter le point d’insertion et la peau périphérique : rougeur, douleur, chaleur, œdème, écoulement, lésion.\nEn cas de signe anormal : sécuriser, tracer, alerter selon procédures et recommandations en vigueur." },
       { t: "Surveillance de la position du PICC", d: "Vérifier l’absence de traction et toute modification de la longueur externe visible (si repère).\nToute suspicion de migration doit être signalée et tracée." },
@@ -40,7 +43,6 @@ const DATA = [
       { t: "Fin du soin et traçabilité", d: "Retirer les gants et réaliser une hygiène des mains.\nTracer : date, état du site, type de pansement, fixation, anomalies et actions entreprises." },
     ],
 
-    // ⏱️ Fréquence figée
     frequency: {
       transparent: {
         title: "Pansement transparent",
@@ -61,7 +63,6 @@ const DATA = [
       rule: "Toute perte d’intégrité du pansement impose une réfection immédiate."
     },
 
-    // 👀 Surveillance figée (pratique)
     surveillance: [
       "À chaque shift : vérifier l’intégrité du pansement et de la fixation.",
       "Au moins 1 fois par jour : inspection du site d’insertion (signes locaux).",
@@ -69,7 +70,6 @@ const DATA = [
       "Informer le patient des signes à signaler (douleur, fièvre, écoulement, décollement, traction)."
     ],
 
-    // 🛡️ Bloc légal / aide à la pratique figé
     responsibility: {
       purpose: "Cette fiche a pour objectif de soutenir la pratique professionnelle infirmière en proposant un rappel structuré des bonnes pratiques relatives à la réfection du pansement de PICC line.",
       frame: "Les informations présentées sont fondées sur les recommandations en vigueur et visent à accompagner le raisonnement clinique infirmier. Elles ne se substituent pas aux protocoles institutionnels, aux prescriptions médicales ni au jugement professionnel.",
@@ -84,19 +84,25 @@ const DATA = [
 ];
 
 // ===========================
-// Favoris (localStorage)
+// Favoris
 // ===========================
 const FAV_KEY = "nf_favs_v1";
+
 function loadFavs() {
   try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]")); }
   catch { return new Set(); }
 }
+
 function saveFavs(set) {
   localStorage.setItem(FAV_KEY, JSON.stringify([...set]));
 }
+
 let favs = loadFavs();
 let showOnlyFavs = false;
 let selectedId = null;
+let currentView = "home";
+let lastListView = "home";
+let lastScrollY = 0;
 
 // ===========================
 // Elements
@@ -105,28 +111,24 @@ const els = {
   viewHome: document.getElementById("viewHome"),
   viewSearch: document.getElementById("viewSearch"),
   detail: document.getElementById("detail"),
-
   categories: document.getElementById("categories"),
   searchInput: document.getElementById("search"),
   status: document.getElementById("status"),
   list: document.getElementById("list"),
-
   detailContent: document.getElementById("detailContent"),
   backBtn: document.getElementById("backBtn"),
   detailFavBtn: document.getElementById("detailFavBtn"),
-
   navBtns: Array.from(document.querySelectorAll(".navBtn")),
-
   goSearchBtn: document.getElementById("goSearchBtn"),
   goCatsBtn: document.getElementById("goCatsBtn"),
   goFavsBtn: document.getElementById("goFavsBtn"),
-
   homeLogo: document.getElementById("homeLogo"),
   homeTitle: document.getElementById("homeTitle"),
   homeHeader: document.getElementById("homeHeader"),
 };
 
 function normalize(s){ return (s || "").toString().toLowerCase().trim(); }
+
 function esc(s){
   return (s || "")
     .replaceAll("&","&amp;")
@@ -137,7 +139,6 @@ function esc(s){
 // ===========================
 // Navigation
 // ===========================
-let currentView = "home";
 function setView(v){
   currentView = v;
   els.viewHome.classList.toggle("hidden", v !== "home");
@@ -161,20 +162,19 @@ function renderCategories(){
 
   const map = new Map();
   DATA.forEach(it => map.set(it.category, (map.get(it.category) || 0) + 1));
-  const cats = Array.from(map.entries()).map(([name, count]) => ({name, count}));
 
-  cats.forEach(c => {
+  Array.from(map.entries()).forEach(([name, count]) => {
     const div = document.createElement("div");
     div.className = "item";
     div.innerHTML = `
       <div style="flex:1; min-width:0">
-        <h3 style="margin:0">${esc(c.name)}</h3>
-        <p style="margin:4px 0 0 0">Voir les fiches • ${c.count} fiche(s)</p>
+        <h3 style="margin:0">${esc(name)}</h3>
+        <p style="margin:4px 0 0 0">Voir les fiches • ${count} fiche(s)</p>
       </div>
     `;
     div.addEventListener("click", () => {
       setView("search");
-      els.searchInput.value = c.name;
+      els.searchInput.value = name;
       showOnlyFavs = false;
       renderList();
     });
@@ -191,14 +191,14 @@ function renderHome(){
 // ===========================
 function getFiltered(){
   const q = normalize(els.searchInput.value);
+
   return DATA.filter(item => {
     const hay = [
       item.title, item.subtitle, item.summary, item.category,
       ...(item.tags || [])
     ].map(normalize).join(" ");
-    const match = !q || hay.includes(q);
-    const favOk = !showOnlyFavs || favs.has(item.id);
-    return match && favOk;
+
+    return (!q || hay.includes(q)) && (!showOnlyFavs || favs.has(item.id));
   });
 }
 
@@ -221,16 +221,16 @@ function itemCard(item){
   `;
 
   div.addEventListener("click", (e) => {
-    const isStar = e.target && e.target.classList && e.target.classList.contains("starBtn");
-    if (!isStar) openDetail(item.id);
+    if (!e.target.classList.contains("starBtn")) openDetail(item.id);
   });
 
-  const star = div.querySelector(".starBtn");
-  star.addEventListener("click", (e) => {
+  div.querySelector(".starBtn").addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (favs.has(item.id)) favs.delete(item.id);
     else favs.add(item.id);
+
     saveFavs(favs);
     renderList();
   });
@@ -244,6 +244,7 @@ function renderList(){
   els.status.textContent = `Mode ${online} • ${items.length} fiche(s) • Favoris: ${favs.size}`;
 
   els.list.innerHTML = "";
+
   if (items.length === 0) {
     const empty = document.createElement("div");
     empty.className = "item";
@@ -261,7 +262,7 @@ els.searchInput.addEventListener("input", () => {
 });
 
 // ===========================
-// Image Zoom (plein écran)
+// Zoom image
 // ===========================
 const zoomOverlay = document.createElement("div");
 zoomOverlay.className = "zoomOverlay";
@@ -287,24 +288,64 @@ function closeZoom() {
 }
 
 function enableImageZoom() {
-  const imgs = document.querySelectorAll(".zoomable");
-  imgs.forEach(img => {
-    // évite d'ajouter plusieurs fois le listener si on rouvre le détail
+  document.querySelectorAll(".zoomable").forEach(img => {
     if (img.dataset.zoomBound === "1") return;
     img.dataset.zoomBound = "1";
-
-    img.addEventListener("click", () => {
-      openZoom(img.dataset.full || img.src);
-    });
+    img.addEventListener("click", () => openZoom(img.dataset.full || img.src));
   });
 }
 
 zoomOverlay.addEventListener("click", (e) => {
   if (e.target === zoomOverlay || e.target === zoomClose) closeZoom();
 });
+
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeZoom();
+  if (e.key === "Escape") {
+    closeZoom();
+    closeVideo();
+  }
 });
+
+// ===========================
+// Vidéo MP4
+// ===========================
+function openVideo(src) {
+  const modal = document.createElement("div");
+  modal.className = "videoModal";
+
+  modal.innerHTML = `
+    <div class="videoContainer">
+      <button class="closeVideo" type="button">✕</button>
+      <video controls autoplay playsinline>
+        <source src="${esc(src)}" type="video/mp4">
+        Votre navigateur ne supporte pas la vidéo.
+      </video>
+    </div>
+  `;
+
+  const video = modal.querySelector("video");
+  const closeBtn = modal.querySelector(".closeVideo");
+
+  function removeModal() {
+    if (video) video.pause();
+    modal.remove();
+  }
+
+  closeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    removeModal();
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) removeModal();
+  });
+
+  document.body.appendChild(modal);
+}
+
+function closeVideo() {
+  document.querySelectorAll(".videoModal").forEach(m => m.remove());
+}
 
 // ===========================
 // Détail
@@ -314,11 +355,16 @@ function openDetail(id){
   const item = DATA.find(x => x.id === id);
   if (!item) return;
 
+  lastListView = currentView;
+  lastScrollY = window.scrollY || 0;
+
+  els.viewHome.classList.add("hidden");
+  els.viewSearch.classList.add("hidden");
   els.detail.classList.remove("hidden");
 
-  // bouton favoris du détail
-  const isFav = favs.has(id);
-  els.detailFavBtn.textContent = isFav ? "★ Retirer" : "★ Ajouter";
+  window.scrollTo(0, 0);
+
+  els.detailFavBtn.textContent = favs.has(id) ? "★ Retirer" : "★ Ajouter";
 
   const badgeRow = `
     <div class="badges">
@@ -327,18 +373,30 @@ function openDetail(id){
     </div>
   `;
 
-  const imageHtml = `
+  const imageHtml = item.image ? `
     <div class="heroImg" style="margin-top:12px">
-      <img
-        src="${esc(item.image)}"
-        alt="Illustration PICC"
-        class="zoomable"
-        data-full="${esc(item.image)}"
-        style="cursor:zoom-in"
-      >
+      <img src="${esc(item.image)}" alt="${esc(item.title)}" class="zoomable" data-full="${esc(item.image)}" style="cursor:zoom-in">
     </div>
-    <div class="caption">${esc(item.imageCaption)}</div>
-  `;
+    ${item.imageCaption ? `<div class="caption">${esc(item.imageCaption)}</div>` : ""}
+  ` : "";
+
+  const videoHtml = item.video ? `
+    <div class="section">
+      <div class="sectionHead">
+        <div class="sectionTitle"><span class="icon">🎥</span> Vidéo tutoriel</div>
+        <span class="pill">Démo</span>
+      </div>
+      <button class="btn videoBtn" type="button" data-video="${esc(item.video.file)}">
+        ▶️ Voir la vidéo
+      </button>
+     <div class="caption">
+  ${esc(item.video.title)}<br>
+  <span style="color:#64748b;font-size:13px">
+    🎥 Démonstration indicative à visée pédagogique.<br>
+    Elle ne remplace pas les protocoles institutionnels ni le jugement clinique du professionnel.
+  </span>
+</div>
+  ` : "";
 
   const alertsHtml = `
     <div class="section">
@@ -346,18 +404,15 @@ function openDetail(id){
         <div class="sectionTitle"><span class="icon">🚨</span> Points d’alerte</div>
         <span class="pill">Action adaptée</span>
       </div>
-
       <div class="alertBox">
         <div class="alertTitle">Situations nécessitant une action adaptée :</div>
         <ul class="ul">
           ${(item.alerts||[]).map(a => `<li class="li">${esc(a)}</li>`).join("")}
         </ul>
-
         <div class="alertCTA">
-          <b>➡️ Conduite à tenir :</b><br>${esc(item.alertCTA)}
+          <b>➡️ Conduite à tenir :</b><br>${esc(item.alertCTA || "")}
         </div>
-
-        <div class="alertKey">❗ ${esc(item.alertKey)}</div>
+        <div class="alertKey">❗ ${esc(item.alertKey || "")}</div>
       </div>
     </div>
   `;
@@ -368,10 +423,9 @@ function openDetail(id){
         <div class="sectionTitle"><span class="icon">🪜</span> Technique pas à pas</div>
         <span class="pill">Repliable</span>
       </div>
-
       <div class="accordion">
         ${(item.steps||[]).map((s, i) => `
-          <div class="stepCard" data-step="${i}">
+          <div class="stepCard">
             <button class="stepBtn" type="button" aria-expanded="false">
               <div class="stepLeft">
                 <div class="stepNum">${i+1}</div>
@@ -394,9 +448,8 @@ function openDetail(id){
     <div class="section">
       <div class="sectionHead">
         <div class="sectionTitle"><span class="icon">⏱️</span> Fréquence</div>
-        <span class="pill">Quand changer ?</span>
+        <span class="pill">Quand ?</span>
       </div>
-
       <div class="freqGrid">
         <div class="freqBox">
           <div class="freqTop">
@@ -408,7 +461,6 @@ function openDetail(id){
           </div>
           <div class="freqSub">${f.transparent.bullets.map(x => `• ${esc(x)}`).join("<br>")}</div>
         </div>
-
         <div class="freqBox">
           <div class="freqTop">
             <div>
@@ -420,7 +472,6 @@ function openDetail(id){
           <div class="freqSub">${f.gauze.bullets.map(x => `• ${esc(x)}`).join("<br>")}</div>
         </div>
       </div>
-
       <div class="ruleKey">🔑 ${esc(f.rule)}</div>
     </div>
   `;
@@ -437,32 +488,26 @@ function openDetail(id){
     </div>
   `;
 
-  const r = item.responsibility;
+  const r = item.responsibility || {};
   const legalHtml = `
     <div class="section">
       <div class="sectionHead">
         <div class="sectionTitle"><span class="icon">🛡️</span> Aide à la pratique</div>
         <span class="pill">Cadre</span>
       </div>
-
       <div class="note">
         <div class="noteTitle">Finalité</div>
-        <div class="li">${esc(r.purpose)}</div>
-
+        <div class="li">${esc(r.purpose || "")}</div>
         <div class="noteTitle" style="margin-top:10px">Cadre d’utilisation</div>
-        <div class="li">${esc(r.frame)}</div>
-
+        <div class="li">${esc(r.frame || "")}</div>
         <div class="noteTitle" style="margin-top:10px">Responsabilité</div>
-        <div class="li">${esc(r.duty)}</div>
-
+        <div class="li">${esc(r.duty || "")}</div>
         <div class="noteTitle" style="margin-top:10px">En cas de doute</div>
-        <div class="li">${esc(r.doubt)}</div>
-
-        <div class="small" style="margin-top:10px">${esc(r.refs)}</div>
+        <div class="li">${esc(r.doubt || "")}</div>
+        <div class="small" style="margin-top:10px">${esc(r.refs || "")}</div>
       </div>
-
       <div class="small" style="margin-top:10px">
-        Version ${item.version} • Mise à jour ${item.updatedAt}
+        Version ${item.version} • Mise à jour ${esc(item.updatedAt)}
       </div>
     </div>
   `;
@@ -472,6 +517,7 @@ function openDetail(id){
     <div style="color:var(--muted); margin-bottom:10px">${esc(item.subtitle)}</div>
     ${badgeRow}
     ${imageHtml}
+    ${videoHtml}
     ${alertsHtml}
     ${stepsHtml}
     ${freqHtml}
@@ -479,10 +525,13 @@ function openDetail(id){
     ${legalHtml}
   `;
 
-  // ✅ Active le zoom sur l'image nouvellement injectée
   enableImageZoom();
 
-  // Accordéon : 1 ouvert à la fois
+  const videoBtn = els.detailContent.querySelector(".videoBtn");
+  if (videoBtn) {
+    videoBtn.addEventListener("click", () => openVideo(videoBtn.dataset.video));
+  }
+
   const cards = Array.from(els.detailContent.querySelectorAll(".stepCard"));
   cards.forEach(card => {
     const btn = card.querySelector(".stepBtn");
@@ -490,8 +539,7 @@ function openDetail(id){
       const isOpen = card.classList.contains("open");
       cards.forEach(c => {
         c.classList.remove("open");
-        const b = c.querySelector(".stepBtn");
-        if (b) b.setAttribute("aria-expanded", "false");
+        c.querySelector(".stepBtn").setAttribute("aria-expanded", "false");
       });
       if (!isOpen) {
         card.classList.add("open");
@@ -504,23 +552,25 @@ function openDetail(id){
 function closeDetail(){
   selectedId = null;
   els.detail.classList.add("hidden");
+  setView(lastListView);
+  setTimeout(() => window.scrollTo(0, lastScrollY), 0);
 }
+
 els.backBtn.addEventListener("click", closeDetail);
 
-// Favori depuis le détail
 els.detailFavBtn.addEventListener("click", () => {
   if (!selectedId) return;
   if (favs.has(selectedId)) favs.delete(selectedId);
   else favs.add(selectedId);
+
   saveFavs(favs);
-  // maj bouton
   els.detailFavBtn.textContent = favs.has(selectedId) ? "★ Retirer" : "★ Ajouter";
-  // maj liste si besoin
+
   if (currentView === "search") renderList();
 });
 
 // ===========================
-// Boutons Accueil
+// Boutons accueil
 // ===========================
 els.goSearchBtn.addEventListener("click", () => {
   showOnlyFavs = false;
@@ -544,12 +594,8 @@ els.goCatsBtn.addEventListener("click", () => {
   }, 50);
 });
 
-// Online/offline label refresh
-window.addEventListener("online", () => { if (currentView === "search") renderList(); });
-window.addEventListener("offline", () => { if (currentView === "search") renderList(); });
-
 // ===========================
-// Header (logo + titre) -> Accueil + pulse
+// Header retour accueil
 // ===========================
 function goHomeWithPulse() {
   if (els.homeLogo) {
